@@ -209,4 +209,11 @@ El constructor de esta clase va a recibir, el titulo : String, List<String> elem
 lista de nombres de los elementos a agregar) y un criterio : String, este criterio va a ser lo que vamos a
 mandar como parametro a la controladora en el metodo isDisponible() para que defina en donde va a ir a buscar
 esto junto con la String que seria la llave del elemento a buscar en el Map de la controladora
+
+
+################### v2
+Recorde que existia el patron de diseno strategy esto me llevo a pensar una forma de implementar ese patron de diseno aqui
+entonces fue exactamente lo que hice, se crearon las clases ElementoBehaviour IngredienteBehaviour y UtensilioBehaviour
+y esto fue lo que se utilizo para poder pasar como parametro al constructor cuales eran los metodos que tenian que utilizarse
+mediante una interfaz ElementoBehaviour, disminuyendo el acoplamiento.
  */
