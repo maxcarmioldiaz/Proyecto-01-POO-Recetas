@@ -2,63 +2,184 @@ package display.components;
 
 import javax.swing.*;
 import java.awt.*;
-import display.components.*;
+import display.behaviours.ElementoBehaviour;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.List;
-import java.util.ArrayList;
-import control.Controladora;
 
 public class CheckBoxScrollPane extends JPanel {
 
-    private List<String> elementos = new ArrayList<>();
-    public CheckBoxScrollPane(String titulo, List<String> elements, String criterio) {
-        JPanel panel = new JPanel();
+    private JPanel panel;
+    private JPanel filaSeleccionada;
+    private String elementoSeleccionado;
+
+    private Color BASE;
+    private Color TEXTO;
+    private Font GENERAL;
+
+    private final ElementoBehaviour behaviour;
+
+    public CheckBoxScrollPane(String titulo, ElementoBehaviour behaviour, Color BASE,
+            Color TEXTO, Font GENERAL, Font BOTONES) {
+        this.BASE = BASE;
+        this.TEXTO = TEXTO;
+        this.GENERAL = GENERAL;
+        this.behaviour = behaviour;
+
+        panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-        //Este comentario es para lo que comente en el discord de
-        //los metodos de la controladora y creo que no tengo que
-        //explicar que se supone que hace Controladora.getInstance()
-        //tomando en cuenta que la controladora deberia ser un singleton LMAO
-        Controladora c = Controladora.getInstance();
+        actualizarElementos();
+
+        JScrollPane scrollPane = new JScrollPane(panel);
+        setLayout(new BorderLayout());
+
+        JLabel tituloLabel = new JLabel(titulo, SwingConstants.CENTER);
+
+        tituloLabel.setBackground(BASE);
+        tituloLabel.setFont(GENERAL);
+        tituloLabel.setForeground(TEXTO);
+
+        add(scrollPane, BorderLayout.CENTER);
+        add(tituloLabel, BorderLayout.NORTH);
+
+        JPanel botones = new JPanel();
+        botones.setBackground(BASE);
+
+        botones.setLayout(new FlowLayout());
+
+        JButton agregar = new JButton("Agregar");
+        JButton eliminar = new JButton("Eliminar");
+        JButton editar = new JButton("Editar");
+
+        agregar.setForeground(TEXTO);
+        agregar.setBackground(BASE);
+        agregar.setFont(BOTONES);
+
+        eliminar.setForeground(TEXTO);
+        eliminar.setBackground(BASE);
+        eliminar.setFont(BOTONES);
+
+        editar.setForeground(TEXTO);
+        editar.setBackground(BASE);
+        editar.setFont(BOTONES);
+
+        setBackground(BASE);
+        panel.setBackground(BASE);
+
+        tituloLabel.setOpaque(true);
+
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+        agregar.addActionListener(e -> {
+            Window ventana = SwingUtilities.getWindowAncestor(this);
+            this.behaviour.agregar(ventana);
+            actualizarElementos();
+        });
+
+        eliminar.addActionListener(e -> {
+            if (hayElementoSeleccionado()) {
+                Window ventana = SwingUtilities.getWindowAncestor(this);
+                this.behaviour.eliminar(elementoSeleccionado, ventana);
+                actualizarElementos();
+            }
+        });
+
+        editar.addActionListener(e -> {
+            if (hayElementoSeleccionado()) {
+                Window ventana = SwingUtilities.getWindowAncestor(this);
+                this.behaviour.editar(elementoSeleccionado, ventana);
+                actualizarElementos();
+            }
+        });
+
+        botones.add(agregar);
+        botones.add(eliminar);
+        botones.add(editar);
+
+        add(botones, BorderLayout.SOUTH);
+
+
+    }
+
+    public String getElementoSeleccionado() {
+        return elementoSeleccionado;
+    }
+
+    public boolean hayElementoSeleccionado() {
+        return elementoSeleccionado != null;
+    }
+
+    private void actualizarElementos() {
+        List<String> elements = behaviour.getElementos();
+
+        panel.removeAll();
+
+        filaSeleccionada = null;
+        elementoSeleccionado = null;
 
         for (String element : elements) {
             JPanel fila = new JPanel(new BorderLayout());
             JLabel nombre = new JLabel(element);
             JCheckBox checkBox = new JCheckBox();
 
+            fila.setBackground(BASE);
+            nombre.setFont(GENERAL);
+            nombre.setForeground(TEXTO);
+
             //A este metodo le estoy pasando String element
             //y String criterio, con criterio va a definir si va a buscar
             //en los ingredientes o en los utensilios es decir esa comparacion debe
             //existir dentro del metodo isDisponible
-            checkBox.setSelected(c.isDisponible(element, criterio);
+            checkBox.setSelected(behaviour.isDisponible(element));
 
             checkBox.addActionListener(e -> {
-                Boolean disponibilidad;
-                if (checkBox.isSelected()) {
-                    disponibilidad = false;
-                    checkBox.setSelected(disponibilidad);
-
-                    //Parecido al anterior, este metodo recibe String element
-                    //que es la llave en el Map del elemento a buscar,
-                    //String criterio es lo que define en donde va a buscar
-                    //Boolean disponibilidad es le nuevo valor que tiene que
-                    //tomar el objeto ya sea ingrediente o utensilio en el atributo disponibilidad
-                    c.cambiarDisponibilidad(element, criterio, disponibilidad);
-                } else {
-                    disponibilidad = true;
-                    checkBox.setSelected(disponibilidad);
-
-                    //Ya explicado
-                    c.cambiarDisponibilidad(element, criterio, disponibilidad);
-                }
+                behaviour.cambiarDisponibilidad(
+                        element, checkBox.isSelected()
+                );
             });
+
+            MouseAdapter seleccion = new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+
+                    if (filaSeleccionada != null) {
+                        filaSeleccionada.setBackground(BASE);
+                    }
+
+                    filaSeleccionada = fila;
+                    elementoSeleccionado = element;
+
+                    filaSeleccionada.setBackground(BASE.darker());
+                }
+            };
+
+            fila.addMouseListener(seleccion);
+            nombre.addMouseListener(seleccion);
+
+            fila.setPreferredSize(new Dimension(200, 45));
+            fila.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
 
             fila.add(nombre, BorderLayout.CENTER);
             fila.add(checkBox, BorderLayout.EAST);
             fila.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+            checkBox.setOpaque(false);
+
+            fila.setBorder(
+                    BorderFactory.createMatteBorder(0, 0, 1, 0, TEXTO)
+            );
+
+            panel.add(fila);
         }
 
+        panel.revalidate();
+        panel.repaint();
     }
+
 }
+
+
 
 /*
 Este checkboxscrollpane es un panel en el que se tiene el titulo del panel arriba
