@@ -127,10 +127,6 @@ public class CheckBoxScrollPane extends JPanel {
             nombre.setFont(GENERAL);
             nombre.setForeground(TEXTO);
 
-            //A este metodo le estoy pasando String element
-            //y String criterio, con criterio va a definir si va a buscar
-            //en los ingredientes o en los utensilios es decir esa comparacion debe
-            //existir dentro del metodo isDisponible
             checkBox.setSelected(behaviour.isDisponible(element));
 
             checkBox.addActionListener(e -> {

@@ -1,4 +1,6 @@
 package display.dialogs;
 
-public class DialogBorrarEtiqueta {
+import javax.swing.*;
+
+public class DialogBorrarEtiqueta extends JDialog {
 }
