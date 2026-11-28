@@ -1,4 +1,6 @@
 package display.dialogs;
 
-public class DialogBorrarIngrediente {
+import javax.swing.*;
+
+public class DialogBorrarIngrediente extends JDialog {
 }
